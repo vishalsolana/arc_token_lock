@@ -18,11 +18,13 @@ module.exports = {
       chainId: 5042002,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
     },
-    // Mainnet launches September 16, 2026 — Arc's docs explicitly say mainnet endpoints are
-    // "published separately when available" and are not live as of writing. Do not deploy here
-    // until you've confirmed a real RPC URL from docs.arc.io yourself.
+    // Mainnet is technically live ahead of Circle's official Sep 16, 2026 public launch. Circle's
+    // own RPC (rpc.mainnet.arc.io) is gated to approved node operators (401/403), so this
+    // defaults to rpc.arc-scan.org — a third-party, unofficial public RPC, not Circle-run or
+    // SLA-backed. Deploying here means real funds through infrastructure we don't control. Swap
+    // ARC_MAINNET_RPC_URL to Circle's own endpoint the moment it's public.
     arcMainnet: {
-      url: process.env.ARC_MAINNET_RPC_URL || "",
+      url: process.env.ARC_MAINNET_RPC_URL || "https://rpc.arc-scan.org",
       chainId: 5042,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
     },
