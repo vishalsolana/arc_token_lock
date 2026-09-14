@@ -18,13 +18,14 @@ module.exports = {
       chainId: 5042002,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
     },
-    // Mainnet is technically live ahead of Circle's official Sep 16, 2026 public launch. Circle's
-    // own RPC (rpc.mainnet.arc.io) is gated to approved node operators (401/403), so this
-    // defaults to rpc.arc-scan.org — a third-party, unofficial public RPC, not Circle-run or
-    // SLA-backed. Deploying here means real funds through infrastructure we don't control. Swap
-    // ARC_MAINNET_RPC_URL to Circle's own endpoint the moment it's public.
+    // Mainnet is very likely technically live but NOT publicly deployable to yet, through any
+    // channel found so far: Circle's own RPC is gated to approved node operators (401/403),
+    // QuickNode only offers testnet provisioning (no mainnet option in their UI as of writing),
+    // and rpc.arc-scan.org doesn't resolve to a real TLS cert. Left with no default on purpose —
+    // set ARC_MAINNET_RPC_URL once a real, working endpoint actually exists (Circle's Sep 16
+    // launch, or a provider adding a mainnet option).
     arcMainnet: {
-      url: process.env.ARC_MAINNET_RPC_URL || "https://rpc.arc-scan.org",
+      url: process.env.ARC_MAINNET_RPC_URL || "",
       chainId: 5042,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
     },

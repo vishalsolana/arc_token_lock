@@ -20,24 +20,22 @@ export const arcTestnet = defineChain({
   testnet: true,
 });
 
-// Mainnet is technically live (real blocks, real transactions confirmed independently) ahead of
-// Circle's official public launch (Sep 16, 2026). Circle's own RPC endpoints
-// (rpc.mainnet.arc.io and its node-provider variants, per circlefin/arc-node#356) are gated to
-// approved node operators (401/403) — NOT publicly open yet. rpc.arc-scan.org is a third-party,
-// unofficial public RPC that works without a key; arc-scan.org is that same operator's block
-// explorer. Neither is Circle-run or SLA-backed — a contract deployed through it holds real user
-// funds via infrastructure we don't control. Swap to Circle's own endpoint the moment it's
-// public. Decimals: unconfirmed, see the note on arcTestnet above.
+// Mainnet is very likely technically live (a real trade's transaction receipt showed real blocks
+// and contract addresses matching a known integrator's own docs) ahead of Circle's official
+// public launch (Sep 16, 2026) — but there is currently NO working public way to submit
+// transactions to it. Circle's own RPC (rpc.mainnet.arc.io) is gated to approved node operators
+// (401/403, per circlefin/arc-node#356). QuickNode, a real infra provider, only lists "Arc
+// Testnet" as an option to provision — no mainnet. rpc.arc-scan.org (tried directly) doesn't
+// resolve to a real TLS cert at all. So: not deployable yet, by anyone, through any channel we've
+// found. Revisit once Circle's Sep 16 launch publishes a real endpoint, or a provider like
+// QuickNode adds a mainnet option. Left blank rather than pointing at a dead domain.
 export const arcMainnet = defineChain({
   id: 5042,
   name: "Arc",
   nativeCurrency: { name: "USD Coin", symbol: "USDC", decimals: 18 },
   rpcUrls: {
     default: {
-      http: [process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL ?? "https://rpc.arc-scan.org"],
+      http: [process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL ?? ""],
     },
-  },
-  blockExplorers: {
-    default: { name: "Arc Scan (independent)", url: "https://arc-scan.org" },
   },
 });
