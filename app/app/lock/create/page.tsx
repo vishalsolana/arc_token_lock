@@ -131,8 +131,9 @@ export default function CreateLockPage() {
 
       {!lockerAddress && (
         <Banner>
-          No TokenLocker address configured for this network. Set NEXT_PUBLIC_TOKEN_LOCKER_ADDRESS
-          after deploying (see contracts/README.md).
+          No TokenLocker address configured for this network. Set
+          NEXT_PUBLIC_TOKEN_LOCKER_ADDRESS_TESTNET (or _MAINNET) after deploying (see
+          contracts/README.md).
         </Banner>
       )}
 
