@@ -20,6 +20,7 @@ npm run sync-abis            # after `npm test` in ../contracts, pulls in TokenL
 npm run dev
 ```
 
-`NEXT_PUBLIC_TOKEN_LOCKER_ADDRESS` must point at a deployed `TokenLocker` (see
-`../contracts/README.md`) or the create/proof/my-locks pages will show a "not configured"
-message instead of working.
+`NEXT_PUBLIC_TOKEN_LOCKER_ADDRESS_TESTNET` (or `_MAINNET`) must point at a deployed `TokenLocker`
+(see `../contracts/README.md`) for the matching network, or the create/proof/my-locks pages will
+show a "not configured" message instead of working. Testnet (chain 5042002) is usable today;
+mainnet (chain 5042) launches September 16, 2026.

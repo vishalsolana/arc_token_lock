@@ -6,7 +6,8 @@
   "scripts": {
     "compile": "node scripts/compile.js",
     "test": "node scripts/compile.js && hardhat test --no-compile",
-    "deploy": "node scripts/compile.js && hardhat run scripts/deploy.js --network arcMainnet"
+    "deploy:testnet": "node scripts/compile.js && hardhat run scripts/deploy.js --network arcTestnet",
+    "deploy:mainnet": "node scripts/compile.js && hardhat run scripts/deploy.js --network arcMainnet"
   },
   "keywords": [],
   "author": "",

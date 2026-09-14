@@ -21,28 +21,41 @@ Chain.
   development. Not yet usable end-to-end because there's no deployed contract address to point
   it at (see below).
 
-## Chain config — verify before going live
+## Chain config
 
-Everything below came from a chat message, not Arc's own docs. Confirm each value independently
-before deploying or launching:
+Arc is Circle's (the USDC company) USDC-native L1. Mainnet launches **September 16, 2026**; until
+then only testnet is usable. Values below are confirmed from Arc's own docs
+(`docs.arc.io/arc/references/rpc-endpoints`), not guessed:
 
-- **Chain ID**: `5042`
-- **Native currency**: `USDC`
-- **RPC**: `arc-mainnet.infura.io` (needs your own Infura project ID appended)
-- **Block explorer**: `https://arc-scan.org` — this session's network proxy blocked outbound
-  requests to this domain, so it could not be independently verified as the real, official Arc
-  explorer. A prior value given for this ("megaeth-pump-ok-moon.poptyedev.com") did not even
-  resolve in DNS and was rejected rather than wired in. Since this explorer link is the whole
-  point of the "share the proof" feature, look it up yourself before shipping.
+| | Testnet (usable now) | Mainnet (launches Sep 16, 2026) |
+|---|---|---|
+| Chain ID | `5042002` | `5042` |
+| Native currency | USDC | USDC |
+| RPC (Circle's own) | `https://rpc.testnet.arc.io` | not yet published |
+| Block explorer | `https://testnet.arcscan.app` | not yet published |
+| Faucet | `https://faucet.circle.com` | n/a |
+
+Earlier drafts of this project pointed at `arc-mainnet.infura.io` and `arc-scan.org` — both were
+unverified guesses from a chat message. `arc-scan.org` in particular turned out to be different,
+unofficial infrastructure, not Circle's real explorer (`arcscan.app`). Those have been replaced
+with the confirmed testnet values above; don't reintroduce the old ones.
+
+One more thing worth double-checking yourself: Arc's docs list the gas-USDC currency symbol but
+not its decimals on the RPC-endpoints page. This repo currently assumes 18 decimals (carried over
+from an earlier unverified value) — confirm against `docs.arc.io/arc-network/gas-and-fees` before
+relying on it for any amount math, since a wrong decimals value causes silent off-by-10^n bugs.
 
 ## Still to build
 
-1. **Deploy** `TokenLocker` to Arc chain (see `contracts/README.md`) and set
-   `NEXT_PUBLIC_TOKEN_LOCKER_ADDRESS` in `app/`.
-2. **WalletConnect Cloud project ID** for RainbowKit (`NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`).
-3. **Decide on a lock fee** (optional) — `TokenLocker.setLockFee()` lets the owner charge a flat
+1. **Deploy** `TokenLocker` to Arc testnet now (`npm run deploy:testnet` in `contracts/`, see
+   `contracts/README.md`) and set `NEXT_PUBLIC_TOKEN_LOCKER_ADDRESS_TESTNET` in `app/` — this is
+   fully doable today. Mainnet deploy waits for Arc's real launch on Sep 16.
+2. **WalletConnect Cloud project ID** for RainbowKit (`NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`) —
+   free at cloud.reown.com.
+3. **Confirm the USDC decimals** question above before launch.
+4. **Decide on a lock fee** (optional) — `TokenLocker.setLockFee()` lets the owner charge a flat
    native-asset fee per lock; defaults to 0.
-4. **Security review** of `contracts/` before mainnet — this contract holds arbitrary users'
+5. **Security review** of `contracts/` before mainnet — this contract holds arbitrary users'
    tokens in escrow, so it's worth a second set of eyes.
-5. A public "browse all locks" / directory page (`locksByToken` is already exposed on-chain for
+6. A public "browse all locks" / directory page (`locksByToken` is already exposed on-chain for
    this) if you want investors to be able to look up a token's locks without knowing a lock ID.
