@@ -23,43 +23,39 @@ Chain.
 
 ## Chain config
 
-Arc is Circle's (the USDC company) USDC-native L1. Circle's official public launch is
-**September 16, 2026**. The chain is very likely already producing real blocks ahead of that
-(a real trade's transaction receipt checked out, with contract addresses matching a known
-integrator's own docs) — but **there is currently no working public way to submit transactions
-to mainnet**, through any channel checked: Circle's own RPC (`rpc.mainnet.arc.io`) is gated to
-approved node operators (401/403), QuickNode's own signup UI only offers "Arc Testnet" (no
-mainnet option), and the one unofficial public RPC found (`rpc.arc-scan.org`) doesn't resolve to
-a real TLS certificate at all. So mainnet isn't deployable yet — not out of caution, but because
-there's nowhere to actually send the transaction.
+Arc is Circle's (the USDC company) USDC-native L1. **September 16, 2026 — today, as of this
+note — is Circle's confirmed public mainnet launch date**, independently corroborated by
+multiple news outlets and Circle's own pressroom (real founding validators: BlackRock, Visa,
+Mastercard, Fireblocks, and others).
 
-| | Testnet (usable now) | Mainnet (not deployable yet) |
+| | Testnet | Mainnet |
 |---|---|---|
 | Chain ID | `5042002` | `5042` |
 | Native currency | USDC | USDC |
-| RPC | `https://rpc.testnet.arc.io` — Circle's own, confirmed via `docs.arc.io` | none published/working yet |
-| Block explorer | `https://testnet.arcscan.app` — Circle-affiliated | independent explorers exist (`arcexplorer.org`, `arc-scan.org`) but no matching working RPC |
-| Faucet | `https://faucet.circle.com` | n/a |
+| RPC | `https://rpc.testnet.arc.io` — Circle's own, confirmed via `docs.arc.io` | `https://rpc.mainnet.arc.io` — Circle's own endpoint naming; was gated pre-launch, plausibly open now that launch day has arrived, but **not yet confirmed by an actual successful deploy** |
+| Block explorer | `https://testnet.arcscan.app` — Circle-affiliated | `https://arc-scan.org` |
+| Faucet | `https://faucet.circle.com` | n/a — needs real USDC for gas |
 
-**Check back once mainnet is actually reachable**: either Circle's Sep 16, 2026 launch publishes
-a real endpoint at `docs.arc.io/arc/references/rpc-endpoints`, or a provider like QuickNode adds
-an "Arc Mainnet" option to their endpoint creation flow. Either is the signal to set
-`ARC_MAINNET_RPC_URL` for real and run `npm run deploy:mainnet`.
+**Before deploying real funds through `rpc.mainnet.arc.io`, confirm it actually works** — the
+most reliable way is just running `npm run deploy:mainnet` with a small amount of gas and seeing
+if it succeeds. Earlier attempts at other mainnet RPC guesses (an Infura URL, `rpc.arc-scan.org`)
+turned out not to work, so treat this the same way: promising and well-corroborated, but verify
+with a real transaction before trusting it at scale.
 
-One more thing worth double-checking once that day comes: Arc's docs list the gas-USDC currency
-symbol but not its decimals. This repo assumes 18 decimals (an unverified early value, never
-independently confirmed) — check this before relying on it for any amount math, since a wrong
-decimals value causes silent off-by-10^n bugs.
+One more thing worth double-checking: Arc's docs list the gas-USDC currency symbol but not its
+decimals. This repo assumes 18 decimals (an unverified early value, never independently
+confirmed) — check this before relying on it for any amount math, since a wrong decimals value
+causes silent off-by-10^n bugs.
 
 ## Still to build
 
-1. **Deploy `TokenLocker` to testnet now** (`npm run deploy:testnet` in `contracts/`, needs only
-   a faucet-funded wallet) and set `NEXT_PUBLIC_TOKEN_LOCKER_ADDRESS_TESTNET` in `app/` — this is
-   fully usable today and lets you see the whole product work end-to-end. Mainnet deploy waits
-   until a working RPC actually exists (see above).
+1. **Deploy `TokenLocker`.** Testnet (`npm run deploy:testnet` in `contracts/`) needs only a
+   faucet-funded wallet and is known-working. Mainnet (`npm run deploy:mainnet`) needs a wallet
+   funded with real USDC — try it and confirm it actually succeeds before relying on it. Either
+   way, set `NEXT_PUBLIC_TOKEN_LOCKER_ADDRESS_TESTNET` / `_MAINNET` in `app/` afterwards.
 2. **WalletConnect Cloud project ID** for RainbowKit (`NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`) —
    free at cloud.reown.com.
-3. **Confirm the USDC decimals** question above before mainnet launch.
+3. **Confirm the USDC decimals** question above.
 4. **Decide on a lock fee** (optional) — `TokenLocker.setLockFee()` lets the owner charge a flat
    native-asset fee per lock; defaults to 0.
 5. **Security review** of `contracts/` before real money flows through it at scale — this

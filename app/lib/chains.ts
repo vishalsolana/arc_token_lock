@@ -20,22 +20,25 @@ export const arcTestnet = defineChain({
   testnet: true,
 });
 
-// Mainnet is very likely technically live (a real trade's transaction receipt showed real blocks
-// and contract addresses matching a known integrator's own docs) ahead of Circle's official
-// public launch (Sep 16, 2026) — but there is currently NO working public way to submit
-// transactions to it. Circle's own RPC (rpc.mainnet.arc.io) is gated to approved node operators
-// (401/403, per circlefin/arc-node#356). QuickNode, a real infra provider, only lists "Arc
-// Testnet" as an option to provision — no mainnet. rpc.arc-scan.org (tried directly) doesn't
-// resolve to a real TLS cert at all. So: not deployable yet, by anyone, through any channel we've
-// found. Revisit once Circle's Sep 16 launch publishes a real endpoint, or a provider like
-// QuickNode adds a mainnet option. Left blank rather than pointing at a dead domain.
+// Circle's official public mainnet launch is Sep 16, 2026 (confirmed by multiple independent
+// news sources — Circle's own pressroom, The Defiant, KuCoin — reporting real founding
+// validators: BlackRock, Visa, Mastercard, Fireblocks, and others). rpc.mainnet.arc.io matches
+// the exact naming pattern of Circle's own endpoint (previously seen gated 401/403 pre-launch,
+// per circlefin/arc-node#356) — plausible it's now open, but NOT yet independently verified by
+// actually completing a deploy through it. arc-scan.org as an explorer is a different claim than
+// the earlier finding that specifically rpc.arc-scan.org (a different, unofficial RPC) was
+// flagged by an ISP spam blocklist — that finding doesn't contradict arc-scan.org being a real
+// explorer site. Verify with a real deploy before trusting this for production use.
 export const arcMainnet = defineChain({
   id: 5042,
   name: "Arc",
   nativeCurrency: { name: "USD Coin", symbol: "USDC", decimals: 18 },
   rpcUrls: {
     default: {
-      http: [process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL ?? ""],
+      http: [process.env.NEXT_PUBLIC_ARC_MAINNET_RPC_URL ?? "https://rpc.mainnet.arc.io"],
     },
+  },
+  blockExplorers: {
+    default: { name: "Arc Scan", url: "https://arc-scan.org" },
   },
 });

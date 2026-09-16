@@ -25,8 +25,8 @@ time.
 npm install
 npm test                # compiles + runs the test suite (9 tests)
 npm run compile          # compile only -> build/contracts.json
-npm run deploy:testnet    # deploy to Arc testnet — usable today, free faucet funds
-npm run deploy:mainnet    # deploy to Arc mainnet — NOT usable yet, see below
+npm run deploy:testnet    # deploy to Arc testnet — known-working, free faucet funds
+npm run deploy:mainnet    # deploy to Arc mainnet — launched Sep 16, 2026, verify before trusting at scale
 ```
 
 ## Deploying
@@ -34,14 +34,14 @@ npm run deploy:mainnet    # deploy to Arc mainnet — NOT usable yet, see below
 Requires:
 
 - `DEPLOYER_PRIVATE_KEY` — a wallet funded with USDC for gas (free testnet USDC from
-  `https://faucet.circle.com`). **Never paste a real private key into a chat session** — set it
-  as a local environment variable only.
+  `https://faucet.circle.com`; real USDC for mainnet). **Never paste a real private key into a
+  chat session** — set it as a local environment variable only.
 - `FEE_TREASURY_ADDRESS` — where the per-lock fee (if any) is sent; just a wallet address you
   control, no funds need to be in it. Required even if you leave the fee at 0, since the
   constructor takes it.
 - `ARC_TESTNET_RPC_URL` (optional) — defaults to Circle's own `https://rpc.testnet.arc.io`.
-- `ARC_MAINNET_RPC_URL` — **no working value exists yet.** Circle's own `rpc.mainnet.arc.io` is
-  gated to approved node operators (401/403, per `circlefin/arc-node#356`); QuickNode's endpoint
-  UI only offers Arc Testnet; the one unofficial public RPC found (`rpc.arc-scan.org`) failed a
-  basic TLS handshake. `npm run deploy:mainnet` will fail until a real endpoint exists — check
-  `docs.arc.io/arc/references/rpc-endpoints` or QuickNode's chain list after Sep 16, 2026.
+- `ARC_MAINNET_RPC_URL` (optional) — defaults to `https://rpc.mainnet.arc.io`, Circle's own
+  endpoint naming, which should have opened to the public on the Sep 16, 2026 launch. Not yet
+  confirmed by an actual successful deploy from this repo — the first real `npm run
+  deploy:mainnet` is the verification. If it fails, check `docs.arc.io/arc/references/rpc-endpoints`
+  for whatever Circle actually published, rather than guessing again.
