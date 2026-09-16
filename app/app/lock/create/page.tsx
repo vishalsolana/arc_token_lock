@@ -7,6 +7,9 @@ import { decodeEventLog, isAddress, maxUint256, parseUnits, formatUnits } from "
 import { TOKEN_LOCKER_ADDRESS, TokenLockerAbi } from "@/lib/contracts";
 import { Erc20Abi } from "@/lib/erc20";
 import { arcMainnet } from "@/lib/chains";
+import { addRecentToken, getRecentTokens, type RecentToken } from "@/lib/recentTokens";
+
+const PERCENT_OPTIONS = [25, 50, 100];
 
 const DAY = 24 * 60 * 60;
 const PRESETS = [
@@ -20,11 +23,17 @@ const PRESETS = [
 export default function CreateLockPage() {
   const router = useRouter();
   const { address: account, isConnected, chainId } = useAccount();
-  const lockerAddress = TOKEN_LOCKER_ADDRESS[chainId ?? arcMainnet.id];
+  const effectiveChainId = chainId ?? arcMainnet.id;
+  const lockerAddress = TOKEN_LOCKER_ADDRESS[effectiveChainId];
 
   const [tokenAddress, setTokenAddress] = useState("");
   const [amountInput, setAmountInput] = useState("");
   const [unlockDate, setUnlockDate] = useState("");
+  const [recentTokens, setRecentTokens] = useState<RecentToken[]>([]);
+
+  useEffect(() => {
+    setRecentTokens(getRecentTokens(effectiveChainId));
+  }, [effectiveChainId]);
 
   const isValidToken = isAddress(tokenAddress);
 
@@ -94,6 +103,7 @@ export default function CreateLockPage() {
         const decoded = decodeEventLog({ abi: TokenLockerAbi, data: log.data, topics: log.topics });
         if (decoded.eventName === "Locked") {
           const lockId = (decoded.args as unknown as { lockId: bigint }).lockId;
+          if (symbol) addRecentToken(effectiveChainId, { address: tokenAddress as `0x${string}`, symbol });
           router.push(`/lock/${lockId.toString()}`);
           return;
         }
@@ -101,7 +111,20 @@ export default function CreateLockPage() {
         // not the event we're looking for
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [receipt, router]);
+
+  async function handleAddToWallet() {
+    if (!tokenFound || typeof window === "undefined" || !window.ethereum) return;
+    try {
+      await window.ethereum.request({
+        method: "wallet_watchAsset",
+        params: { type: "ERC20", options: { address: tokenAddress, symbol: symbol?.slice(0, 11), decimals: decimals ?? 18 } },
+      });
+    } catch {
+      // user declined or wallet doesn't support it — not worth surfacing an error for
+    }
+  }
 
   const canSubmit =
     isConnected && Boolean(lockerAddress) && tokenFound && parsedAmount > 0n && (balance ?? 0n) >= parsedAmount && isFutureUnlock;
@@ -140,6 +163,28 @@ export default function CreateLockPage() {
       <div style={{ background: "var(--panel)", border: "1px solid var(--border)", borderRadius: 12, padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
         <div>
           <label>Token contract address</label>
+          {recentTokens.length > 0 && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+              {recentTokens.map((t) => (
+                <button
+                  key={t.address}
+                  type="button"
+                  onClick={() => setTokenAddress(t.address)}
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: 999,
+                    border: "1px solid var(--border)",
+                    background: t.address.toLowerCase() === tokenAddress.toLowerCase() ? "var(--accent)" : "var(--panel-2)",
+                    color: t.address.toLowerCase() === tokenAddress.toLowerCase() ? "var(--accent-text)" : "var(--text)",
+                    fontSize: 12,
+                  }}
+                  title={t.address}
+                >
+                  {t.symbol}
+                </button>
+              ))}
+            </div>
+          )}
           <input value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value.trim())} placeholder="0x..." />
           {tokenAddress && !isValidToken && <Hint danger>Not a valid address.</Hint>}
           {isValidToken && isLoadingToken && <Hint>Reading token…</Hint>}
@@ -147,14 +192,37 @@ export default function CreateLockPage() {
             <Hint danger>Couldn't read this as an ERC-20 — check the address and network.</Hint>
           )}
           {tokenFound && (
-            <Hint>
-              {name} ({symbol}) — your balance: {formatUnits(balance ?? 0n, decimals ?? 18)}
-            </Hint>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+              <span style={{ fontSize: 12, color: "var(--text-dim)" }}>
+                {name} ({symbol}) — your balance: {formatUnits(balance ?? 0n, decimals ?? 18)}
+              </span>
+              <button
+                type="button"
+                onClick={handleAddToWallet}
+                style={{ fontSize: 11, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--border)", background: "none", color: "var(--text-dim)" }}
+              >
+                + Add to wallet
+              </button>
+            </div>
           )}
         </div>
 
         <div>
           <label>Amount to lock</label>
+          {tokenFound && (
+            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              {PERCENT_OPTIONS.map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={() => setAmountInput(formatUnits(((balance ?? 0n) * BigInt(pct)) / 100n, decimals ?? 18))}
+                  style={{ padding: "5px 12px", borderRadius: 999, border: "1px solid var(--border)", background: "var(--panel-2)", color: "var(--text)", fontSize: 12 }}
+                >
+                  {pct === 100 ? "Max" : `${pct}%`}
+                </button>
+              ))}
+            </div>
+          )}
           <input value={amountInput} onChange={(e) => setAmountInput(e.target.value)} placeholder="0.0" disabled={!tokenFound} />
           {tokenFound && parsedAmount > 0n && (balance ?? 0n) < parsedAmount && <Hint danger>Exceeds your balance.</Hint>}
         </div>
