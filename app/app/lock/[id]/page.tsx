@@ -6,6 +6,7 @@ import { formatUnits } from "viem";
 import { TOKEN_LOCKER_ADDRESS, TokenLockerAbi, type Lock } from "@/lib/contracts";
 import { Erc20Abi } from "@/lib/erc20";
 import { arcMainnet } from "@/lib/chains";
+import { toDateValue, endOfDayTimestamp } from "@/lib/dates";
 
 export default function LockProofPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -134,7 +135,7 @@ function OwnerActions({
 
   if (isSuccess) onChanged();
 
-  const extendTimestamp = extendDate ? Math.floor(new Date(extendDate).getTime() / 1000) : 0;
+  const extendTimestamp = extendDate ? endOfDayTimestamp(extendDate) : 0;
   const canExtend = extendTimestamp > Number(currentUnlockTime);
 
   return (
@@ -152,7 +153,12 @@ function OwnerActions({
       ) : (
         <div>
           <label>Push unlock date later (never earlier)</label>
-          <input type="datetime-local" value={extendDate} onChange={(e) => setExtendDate(e.target.value)} />
+          <input
+            type="date"
+            value={extendDate}
+            min={toDateValue(new Date((Number(currentUnlockTime) + 1) * 1000))}
+            onChange={(e) => setExtendDate(e.target.value)}
+          />
           <button
             onClick={() =>
               writeContract({ address: lockerAddress, abi: TokenLockerAbi, functionName: "extendLock", args: [lockId, BigInt(extendTimestamp)] })

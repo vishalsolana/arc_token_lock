@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { CaBox } from "./components/CaBox";
 
 export default function HomePage() {
   return (
     <main style={{ maxWidth: 1000, margin: "0 auto", padding: "48px 16px 24px" }}>
       <section style={{ marginBottom: 56 }}>
+        <CaBox />
         <h1 style={{ fontSize: 48, lineHeight: 1.15, margin: "0 0 16px", fontWeight: 800 }}>
           Instantly <em style={{ color: "var(--accent)", fontStyle: "italic" }}>on-chain trust.</em>
         </h1>

@@ -8,6 +8,7 @@ import { TOKEN_LOCKER_ADDRESS, TokenLockerAbi } from "@/lib/contracts";
 import { Erc20Abi } from "@/lib/erc20";
 import { arcMainnet } from "@/lib/chains";
 import { addRecentToken, getRecentTokens, type RecentToken } from "@/lib/recentTokens";
+import { toDateValue, endOfDayTimestamp } from "@/lib/dates";
 
 const PERCENT_OPTIONS = [25, 50, 100];
 
@@ -19,13 +20,6 @@ const PRESETS = [
   { label: "180 days", seconds: 180 * DAY },
   { label: "1 year", seconds: 365 * DAY },
 ];
-
-// datetime-local's value/min need local-time wall-clock components, not a UTC ISO string —
-// using toISOString() here would silently shift preset dates by the viewer's UTC offset.
-function toDatetimeLocalValue(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
 
 export default function CreateLockPage() {
   const router = useRouter();
@@ -73,7 +67,7 @@ export default function CreateLockPage() {
     }
   }, [amountInput, decimals]);
 
-  const unlockTimestamp = unlockDate ? Math.floor(new Date(unlockDate).getTime() / 1000) : 0;
+  const unlockTimestamp = unlockDate ? endOfDayTimestamp(unlockDate) : 0;
   const isFutureUnlock = unlockTimestamp > Math.floor(Date.now() / 1000);
 
   const { data: allowance, refetch: refetchAllowance } = useReadContracts({
@@ -241,7 +235,7 @@ export default function CreateLockPage() {
               <button
                 key={p.label}
                 type="button"
-                onClick={() => setUnlockDate(toDatetimeLocalValue(new Date(Date.now() + p.seconds * 1000)))}
+                onClick={() => setUnlockDate(toDateValue(new Date(Date.now() + p.seconds * 1000)))}
                 style={{
                   padding: "6px 12px",
                   borderRadius: 999,
@@ -255,12 +249,8 @@ export default function CreateLockPage() {
               </button>
             ))}
           </div>
-          <input
-            type="datetime-local"
-            value={unlockDate}
-            min={toDatetimeLocalValue(new Date())}
-            onChange={(e) => setUnlockDate(e.target.value)}
-          />
+          <input type="date" value={unlockDate} min={toDateValue(new Date())} onChange={(e) => setUnlockDate(e.target.value)} />
+          <Hint>Locks through the end of the day you pick (23:59:59 your local time).</Hint>
           {unlockDate && !isFutureUnlock && <Hint danger>Unlock date must be in the future.</Hint>}
         </div>
 
