@@ -20,6 +20,13 @@ const PRESETS = [
   { label: "1 year", seconds: 365 * DAY },
 ];
 
+// datetime-local's value/min need local-time wall-clock components, not a UTC ISO string —
+// using toISOString() here would silently shift preset dates by the viewer's UTC offset.
+function toDatetimeLocalValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export default function CreateLockPage() {
   const router = useRouter();
   const { address: account, isConnected, chainId } = useAccount();
@@ -91,7 +98,7 @@ export default function CreateLockPage() {
   }, [approveSucceeded]);
 
   const { writeContract: lock, data: lockHash, isPending: isLocking, error: lockError } = useWriteContract();
-  const { data: receipt, isLoading: isLockConfirming } = useWaitForTransactionReceipt({
+  const { data: receipt, isLoading: isLockConfirming, isSuccess: lockConfirmed } = useWaitForTransactionReceipt({
     hash: lockHash,
     query: { enabled: Boolean(lockHash) },
   });
@@ -234,7 +241,7 @@ export default function CreateLockPage() {
               <button
                 key={p.label}
                 type="button"
-                onClick={() => setUnlockDate(new Date((Math.floor(Date.now() / 1000) + p.seconds) * 1000).toISOString().slice(0, 16))}
+                onClick={() => setUnlockDate(toDatetimeLocalValue(new Date(Date.now() + p.seconds * 1000)))}
                 style={{
                   padding: "6px 12px",
                   borderRadius: 999,
@@ -248,9 +255,24 @@ export default function CreateLockPage() {
               </button>
             ))}
           </div>
-          <input type="datetime-local" value={unlockDate} onChange={(e) => setUnlockDate(e.target.value)} />
+          <input
+            type="datetime-local"
+            value={unlockDate}
+            min={toDatetimeLocalValue(new Date())}
+            onChange={(e) => setUnlockDate(e.target.value)}
+          />
           {unlockDate && !isFutureUnlock && <Hint danger>Unlock date must be in the future.</Hint>}
         </div>
+
+        {lockConfirmed && (
+          <div style={{ background: "#12251a", border: "1px solid #235a34", borderRadius: 8, padding: 12, fontSize: 13 }}>
+            ✓ Tokens locked. Opening your lock's proof page… if it doesn't redirect,{" "}
+            <a href="/my-locks" style={{ color: "var(--accent)" }}>
+              view it in My locks
+            </a>
+            .
+          </div>
+        )}
 
         {!isConnected ? (
           <p style={{ fontSize: 13, color: "var(--text-dim)" }}>Connect your wallet to lock tokens.</p>
@@ -263,8 +285,12 @@ export default function CreateLockPage() {
             {isApproving || isApprovingConfirm ? "Approving…" : `Approve ${symbol ?? "token"}`}
           </button>
         ) : (
-          <button onClick={handleLock} disabled={!canSubmit || isLocking || isLockConfirming} style={buttonStyle("var(--accent)", "var(--accent-text)")}>
-            {isLocking || isLockConfirming ? "Locking…" : "Lock tokens"}
+          <button
+            onClick={handleLock}
+            disabled={!canSubmit || isLocking || isLockConfirming || lockConfirmed}
+            style={buttonStyle("var(--accent)", "var(--accent-text)")}
+          >
+            {isLocking || isLockConfirming ? "Locking…" : lockConfirmed ? "Locked ✓" : "Lock tokens"}
           </button>
         )}
 
